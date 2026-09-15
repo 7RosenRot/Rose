@@ -1,0 +1,6 @@
+[submodule "Rose/External/ImGui"]
+	path = Rose/External/ImGui
+	url = https://github.com/ocornut/imgui.git
+[submodule "Rose/External/ImGuizmo"]
+	path = Rose/External/ImGuizmo
+	url = https://github.com/cedricguillemet/imguizmo
