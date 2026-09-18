@@ -1,0 +1,3 @@
+D:/Microsoft Visual Studio/Visual Studio Code/Rose/build/CMakeFiles/ALL_BUILD.dir
+D:/Microsoft Visual Studio/Visual Studio Code/Rose/build/CMakeFiles/ZERO_CHECK.dir
+D:/Microsoft Visual Studio/Visual Studio Code/Rose/build/Rose/CMakeFiles/Rose.dir

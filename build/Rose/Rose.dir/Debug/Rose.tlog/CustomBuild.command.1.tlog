@@ -1,0 +1,10 @@
+^D:\MICROSOFT VISUAL STUDIO\VISUAL STUDIO CODE\ROSE\ROSE\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SD:/Microsoft Visual Studio/Visual Studio Code/Rose" "-BD:/Microsoft Visual Studio/Visual Studio Code/Rose/build" --check-stamp-file "D:/Microsoft Visual Studio/Visual Studio Code/Rose/build/Rose/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

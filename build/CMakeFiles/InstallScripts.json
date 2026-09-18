@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"D:/Microsoft Visual Studio/Visual Studio Code/Rose/build/cmake_install.cmake",
+		"D:/Microsoft Visual Studio/Visual Studio Code/Rose/build/Rose/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

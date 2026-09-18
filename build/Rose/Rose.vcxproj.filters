@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\Microsoft Visual Studio\Visual Studio Code\Rose\Rose\Source\Core\Math\Math.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Microsoft Visual Studio\Visual Studio Code\Rose\Rose\Source\Framework\AssetManager\AssetManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Microsoft Visual Studio\Visual Studio Code\Rose\Rose\Source\Framework\AssetManager\Loaders\ObjLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Microsoft Visual Studio\Visual Studio Code\Rose\Rose\Source\Framework\AssetManager\Loaders\PngLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Microsoft Visual Studio\Visual Studio Code\Rose\Rose\Source\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="D:\Microsoft Visual Studio\Visual Studio Code\Rose\Rose\Source\Core\Math\Math.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Microsoft Visual Studio\Visual Studio Code\Rose\Rose\Source\Framework\AssetManager\AssetManager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Microsoft Visual Studio\Visual Studio Code\Rose\Rose\Source\Framework\AssetManager\Loaders\IResourceLoader.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Microsoft Visual Studio\Visual Studio Code\Rose\Rose\Source\Framework\AssetManager\Loaders\ObjLoader.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Microsoft Visual Studio\Visual Studio Code\Rose\Rose\Source\Framework\AssetManager\Loaders\PngLoader.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Microsoft Visual Studio\Visual Studio Code\Rose\Rose\Source\Framework\AssetManager\Resources\IMesh.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Microsoft Visual Studio\Visual Studio Code\Rose\Rose\Source\Framework\AssetManager\Resources\IResource.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Microsoft Visual Studio\Visual Studio Code\Rose\Rose\Source\Framework\AssetManager\Resources\ITexture.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Microsoft Visual Studio\Visual Studio Code\Rose\Rose\Source\Renderer\D3D12\Mesh\Mesh.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Microsoft Visual Studio\Visual Studio Code\Rose\Rose\Source\Renderer\D3D12\Texture\Texture.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Microsoft Visual Studio\Visual Studio Code\Rose\Rose\Source\Renderer\IRenderer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\Microsoft Visual Studio\Visual Studio Code\Rose\Rose\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{13709B95-701E-374C-A2F8-24DC276C14BE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{0A274B82-ED13-37D1-B306-E167966693FC}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

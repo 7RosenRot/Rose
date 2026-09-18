@@ -71,13 +71,8 @@ namespace Rose::Framework
     {
       case Internal::ResourceType::Mesh:
       {
-        if (Desc.Index < m_pMeshes.size()) {
-          assert(
-            (typeid(T) == typeid(Internal::IMesh))
-             &&
-            ("Type mismatch! Requested Mesh, but template param is other")
-          );
-          
+        if (Desc.Index < m_pMeshes.size())
+        {
           return static_cast<T*>(m_pMeshes[Desc.Index].get());
         }
       
@@ -86,13 +81,8 @@ namespace Rose::Framework
 
       case Internal::ResourceType::Texture:
       {
-        if (Desc.Index < m_pTextures.size()) {
-          assert(
-            (typeid(T) == typeid(Internal::ITexture))
-             &&
-            ("Type mismatch! Requested Texture, but template param is other")
-          );
-          
+        if (Desc.Index < m_pTextures.size())
+        {
           return static_cast<T*>(m_pTextures[Desc.Index].get());
         }
       
