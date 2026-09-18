@@ -11,7 +11,7 @@ namespace Rose::Framework::Internal
   struct ResourceDesc
   {
     ResourceType Type = ResourceType::Unknown;
-    uint32_t Index    = -1;
+    uint32_t Index = -1;
   };
 
   struct Vertex

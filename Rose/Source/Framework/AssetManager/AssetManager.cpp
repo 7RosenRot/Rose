@@ -2,9 +2,9 @@
 
 namespace Rose::Framework {
 
-  void AssetManager::Initialize(const std::shared_ptr<Renderer::IRenderer>& pRenderer)
+  void AssetManager::Initialize(_In_ const std::shared_ptr<Renderer::IRenderer>& pRenderer)
   {
-    m_pRenderer = pRenderer.get();
+    m_pRenderer = pRenderer;
 
     RegistryLoader<Internal::ObjLoader>();
     RegistryLoader<Internal::PngLoader>();
@@ -12,7 +12,7 @@ namespace Rose::Framework {
 
   void AssetManager::Shutdown() {}
 
-  Internal::ResourceDesc AssetManager::UploadResource(const std::string& Path) {
+  Internal::ResourceDesc AssetManager::UploadResource(_In_ const std::string& Path) {
     if (
       auto it = m_ResourceMap.find(Path);
       it != m_ResourceMap.end()
