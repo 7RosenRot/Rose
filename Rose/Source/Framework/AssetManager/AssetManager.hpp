@@ -28,30 +28,68 @@ namespace Rose::Framework
     AssetManager() = default;
     ~AssetManager() = default;
     
-    void Initialize(const std::shared_ptr<Renderer::IRenderer>& pRenderer);
+    void Initialize(_In_ const std::shared_ptr<Renderer::IRenderer>& pRenderer);
     void Shutdown();
     
-    Internal::ResourceDesc UploadResource(const std::string& Path);
-    void DeleteResource(const std::string& Path);
+    Internal::ResourceDesc UploadResource(_In_ const std::string& Path);
+    void DeleteResource(_In_ const std::string& Path);
     
     template <typename T>
-    T* GetResource(const Internal::ResourceDesc& Desc);
+    T* GetResource(_In_ const Internal::ResourceDesc& Desc);
 
    private:
     template <typename T>
     void RegistryLoader();
+
+    template <typename T>
+    class ResourcePool
+    {
+     public:
+      std::uint32_t Push(std::shared_ptr<T> pResource)
+      {
+        if (!m_FreeIndices.empty())
+        {
+          std::uint32_t Index = m_FreeIndices.front();
+          m_FreeIndices.pop();
+
+          m_pResources[Index] = pResource;
+
+          return Index;
+        }
+
+        m_pResources.push_back(pResource);
+        return static_cast<std::uint32_t>(m_pResources.size() - 1);
+      }
+
+      void Pop(std::uint32_t Index)
+      {
+        if (Index < m_pResources.size())
+        {
+          m_pResources[Index].reset();
+          m_FreeIndices.push(Index);
+        }
+      }
+
+      template <typename T>
+      std::shared_ptr<T> Get(std::uint32_t Index)
+      {
+        if (Index < m_pResources.size())
+        {
+          return m_pResources[Index];
+        }
+
+        return nullptr;
+      }
+     private:
+      std::vector<std::shared_ptr<T>> m_pResources;
+      std::queue<std::uint32_t> m_FreeIndices;
+    };
     
-    Renderer::IRenderer* m_pRenderer;
+    std::shared_ptr<Renderer::IRenderer> m_pRenderer;
 
     std::vector<std::shared_ptr<Internal::IResourceLoader>> m_pLoaders;
 
     std::unordered_map<std::string, Internal::ResourceDesc> m_ResourceMap;
-
-    std::vector<std::shared_ptr<Internal::IMesh>> m_pMeshes;
-    std::vector<std::shared_ptr<Internal::ITexture>> m_pTextures;
-    
-    std::queue<uint32_t> m_FreeMeshIndices;
-    std::queue<uint32_t> m_FreeTextureIndices;
   };
 
   template <typename T>
@@ -65,7 +103,7 @@ namespace Rose::Framework
   }
 
   template<typename T>
-  T* AssetManager::GetResource(const Internal::ResourceDesc& Desc)
+  T* AssetManager::GetResource(_In_ const Internal::ResourceDesc& Desc)
   {
     switch (Desc.Type)
     {
