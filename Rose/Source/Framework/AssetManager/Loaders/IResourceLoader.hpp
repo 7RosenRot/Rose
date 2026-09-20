@@ -15,7 +15,7 @@ namespace Rose::Framework::Internal
     IResourceLoader() = default;
     virtual ~IResourceLoader() = default;
 
-    void Initialize(Rose::Renderer::IRenderer* pRenderer)
+    void Initialize(const std::shared_ptr<Rose::Renderer::IRenderer>& pRenderer)
     {
       m_pRenderer = pRenderer;
     }
@@ -24,7 +24,7 @@ namespace Rose::Framework::Internal
     virtual std::shared_ptr<Internal::IResource> LoadResource(const std::string& Path) = 0;
 
    protected:
-    Rose::Renderer::IRenderer* m_pRenderer = nullptr;
+    std::shared_ptr<Rose::Renderer::IRenderer> m_pRenderer = nullptr;
   };
 
 } //  namespace Rose::Framework::Internal
