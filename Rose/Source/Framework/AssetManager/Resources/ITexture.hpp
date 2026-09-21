@@ -11,9 +11,9 @@ namespace Rose::Framework::Internal
     ITexture() = default;
     ~ITexture() = default;
 
-    virtual ResourceType GetType() const override
+    virtual Type GetType() const override
     {
-      return ResourceType::Texture;
+      return Type::Texture;
     }
   };
   

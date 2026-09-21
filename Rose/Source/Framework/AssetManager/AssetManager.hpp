@@ -19,6 +19,49 @@
 #include "Loaders/ObjLoader.hpp"
 #include "Loaders/PngLoader.hpp"
 
+template <typename T>
+class Pool
+{
+ public:
+  std::uint32_t Push(_In_ std::shared_ptr<T> pResource)
+  {
+    if (!m_FreeIndices.empty())
+    {
+      std::uint32_t Index = m_FreeIndices.front();
+      m_FreeIndices.pop();
+      m_pResources[Index] = pResource;
+      
+      return Index;
+    }
+    m_pResources.push_back(pResource);
+    
+    return static_cast<std::uint32_t>(m_pResources.size() - 1);
+  }
+  
+  void Pop(_In_ std::uint32_t Index)
+  {
+    if (Index < m_pResources.size())
+    {
+      m_pResources[Index].reset();
+      m_FreeIndices.push(Index);
+    }
+  }
+  
+  std::shared_ptr<T> Get(_In_ std::uint32_t Index)
+  {
+    if (Index < m_pResources.size())
+    {
+      return m_pResources[Index];
+    }
+  
+    return nullptr;
+  }
+
+ private:
+  std::vector<std::shared_ptr<T>> m_pResources;
+  std::queue<std::uint32_t> m_FreeIndices;
+};
+
 namespace Rose::Framework
 {
 
@@ -31,67 +74,20 @@ namespace Rose::Framework
     void Initialize(_In_ const std::shared_ptr<Renderer::IRenderer>& pRenderer);
     void Shutdown();
     
-    Internal::ResourceDesc UploadResource(_In_ const std::string& Path);
+    Internal::RESOURCE_DESC UploadResource(_In_ const std::string& Path);
     void DeleteResource(_In_ const std::string& Path);
     
     template <typename T>
-    std::shared_ptr<T> GetResource(_In_ const Internal::ResourceDesc& Desc);
+    std::shared_ptr<T> GetResource(_In_ const Internal::RESOURCE_DESC& Desc);
 
    private:
     template <typename T>
     void RegistryLoader();
-
-    template <typename T>
-    class ResourcePool
-    {
-     public:
-      std::uint32_t Push(_In_ std::shared_ptr<T> pResource)
-      {
-        if (!m_FreeIndices.empty())
-        {
-          std::uint32_t Index = m_FreeIndices.front();
-          m_FreeIndices.pop();
-
-          m_pResources[Index] = pResource;
-
-          return Index;
-        }
-
-        m_pResources.push_back(pResource);
-
-        return static_cast<std::uint32_t>(m_pResources.size() - 1);
-      }
-
-      void Pop(_In_ std::uint32_t Index)
-      {
-        if (Index < m_pResources.size())
-        {
-          m_pResources[Index].reset();
-          m_FreeIndices.push(Index);
-        }
-      }
-
-      std::shared_ptr<T> Get(_In_ std::uint32_t Index)
-      {
-        if (Index < m_pResources.size())
-        {
-          return m_pResources[Index];
-        }
-
-        return nullptr;
-      }
-     private:
-      std::vector<std::shared_ptr<T>> m_pResources;
-      std::queue<std::uint32_t> m_FreeIndices;
-    };
     
     std::shared_ptr<Renderer::IRenderer> m_pRenderer;
-
     std::vector<std::shared_ptr<Internal::IResourceLoader>> m_pLoaders;
-    
-    std::unordered_map<std::string, Internal::ResourceDesc> m_ResourceMap;
-
-    ResourcePool<Internal::IResource> m_ResourcePool;
+    std::unordered_map<std::string, Internal::RESOURCE_DESC> m_ResourceMap;
+    Pool<Internal::IResource> m_Pool;
   };
 
   template <typename T>
@@ -105,13 +101,13 @@ namespace Rose::Framework
   }
 
   template<typename T>
-  std::shared_ptr<T> AssetManager::GetResource(_In_ const Internal::ResourceDesc& Desc)
+  std::shared_ptr<T> AssetManager::GetResource(_In_ const Internal::RESOURCE_DESC& Resource)
   {
-    auto pResource = m_ResourcePool.Get(Desc.Index);
+    auto pResource = m_Pool.Get(Resource.Index);
 
     if (!pResource)
     {
-      // Logger expected
+      // LOGGER expected
 
       return nullptr;
     }

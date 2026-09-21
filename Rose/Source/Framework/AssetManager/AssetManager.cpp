@@ -13,16 +13,16 @@ namespace Rose::Framework {
   void AssetManager::Shutdown()
   {}
 
-  Internal::ResourceDesc AssetManager::UploadResource(_In_ const std::string& Path)
+  Internal::RESOURCE_DESC AssetManager::UploadResource(_In_ const std::string& Path)
   {
     auto it = m_ResourceMap.find(Path);
   
     if (it != m_ResourceMap.end())
-      {
+    {
       return it->second;
     }
 
-    Internal::ResourceDesc Resource = {};
+    Internal::RESOURCE_DESC Resource = {};
 
     std::string FileExtension = std::filesystem::path(Path).extension().string();
 
@@ -38,16 +38,16 @@ namespace Rose::Framework {
       }
     }
 
-    if (pResource == nullptr)
+    if (!pResource)
     {
-      // Logger expected
+      // LOGGER expected
 
       return Resource;
     }
 
     Resource.Type = pResource->GetType();
     
-    Resource.Index = m_ResourcePool.Push(pResource);
+    Resource.Index = m_Pool.Push(pResource);
 
     m_ResourceMap.emplace(Path, Resource);
 
@@ -61,9 +61,9 @@ namespace Rose::Framework {
       return;
     }
 
-    Internal::ResourceDesc Resource = it->second;
+    Internal::RESOURCE_DESC Resource = it->second;
 
-    m_ResourcePool.Pop(Resource.Index);
+    m_Pool.Pop(Resource.Index);
 
     m_ResourceMap.erase(it);
   }

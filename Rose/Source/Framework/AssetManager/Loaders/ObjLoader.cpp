@@ -40,16 +40,16 @@ namespace Rose::Framework::Internal
       return false;
     }
 
-    std::vector<Rose::Core::Math::FLOAT3> tmpPositionBuffer;
-    std::vector<Rose::Core::Math::FLOAT2> tmpTextureBuffer;
-    std::vector<Rose::Core::Math::FLOAT3> tmpNormalBuffer;
+    std::vector<Rose::Core::Math::FLOAT3> PositionBuffer;
+    std::vector<Rose::Core::Math::FLOAT2> TextureBuffer;
+    std::vector<Rose::Core::Math::FLOAT3> NormalBuffer;
 
-    std::string VtxData;
+    std::string Line;
     std::uint32_t Index = 0;
 
-    while (std::getline(ObjFile, VtxData))
+    while (std::getline(ObjFile, Line))
     {
-      std::istringstream Stream(VtxData);
+      std::istringstream Stream(Line);
       std::string VertexData_t;
 
       Stream >> VertexData_t;
@@ -59,7 +59,7 @@ namespace Rose::Framework::Internal
         Stream >> Position.x >> Position.y >> Position.z;
         Position.z *= -1.0f;
 
-        tmpPositionBuffer.push_back(Position);
+        PositionBuffer.push_back(Position);
       }
 
       else if (VertexData_t == "vt")
@@ -68,7 +68,7 @@ namespace Rose::Framework::Internal
         Stream >> Texture.x >> Texture.y;
         Texture.y = 1.0f - Texture.y;
 
-        tmpTextureBuffer.push_back(Texture);
+        TextureBuffer.push_back(Texture);
       }
 
       else if (VertexData_t == "vn")
@@ -77,58 +77,61 @@ namespace Rose::Framework::Internal
         Stream >> Normal.x >> Normal.y >> Normal.z;
         Normal.z *= -1.0f;
 
-        tmpNormalBuffer.push_back(Normal);
+        NormalBuffer.push_back(Normal);
       }
 
       else if (VertexData_t == "f")
       {
-        // face: v/vt/vn
-        int vIdx = 0, vtIdx = 0, vnIdx = 0;
-        char slash;
-
-        Stream >> vIdx;
-
-        if (Stream.peek() == '/')
+        for (int i = 0; i < 3; i += 1)
         {
-          Stream >> slash;
-
+          // face: v/vt/vn v/vt/vn v/vt/vn
+          int vIdx = 0, vtIdx = 0, vnIdx = 0;
+          char slash;
+          
+          Stream >> vIdx;
+          
           if (Stream.peek() == '/')
           {
             Stream >> slash;
-            Stream >> vnIdx;
-          }
-
-          else
-          {
-            Stream >> vtIdx;
-
+          
             if (Stream.peek() == '/')
             {
               Stream >> slash;
               Stream >> vnIdx;
             }
+          
+            else
+            {
+              Stream >> vtIdx;
+            
+              if (Stream.peek() == '/')
+              {
+                Stream >> slash;
+                Stream >> vnIdx;
+              }
+            }
           }
+        
+          Vertex VertexData{};
+        
+          if (vIdx > 0)
+          {
+            VertexData.Position = PositionBuffer[vIdx - 1];
+          }
+        
+          if (vtIdx > 0)
+          {
+            VertexData.Texture = TextureBuffer[vtIdx - 1];
+          }
+        
+          if (vnIdx > 0)
+          {
+            VertexData.Normal = NormalBuffer[vnIdx - 1];
+          }
+        
+          Vertices.push_back(VertexData);
+          Indices.push_back(Index++);
         }
-
-        Vertex VertexData{};
-
-        if (vIdx > 0)
-        {
-          VertexData.Position = tmpPositionBuffer[vIdx - 1];
-        }
-
-        if (vtIdx > 0)
-        {
-          VertexData.Texture = tmpTextureBuffer[vtIdx - 1];
-        }
-
-        if (vnIdx > 0)
-        {
-          VertexData.Normal = tmpNormalBuffer[vnIdx - 1];
-        }
-
-        Vertices.push_back(VertexData);
-        Indices.push_back(Index++);
       }
     }
 

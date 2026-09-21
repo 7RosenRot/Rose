@@ -11,9 +11,9 @@ namespace Rose::Framework::Internal
     IMesh() = default;
     ~IMesh() = default;
 
-    virtual ResourceType GetType() const override
+    virtual Type GetType() const override
     {
-      return ResourceType::Mesh;
+      return Type::Mesh;
     }
   };
 

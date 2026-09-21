@@ -3,14 +3,14 @@
 namespace Rose::Framework::Internal
 {
 
-  enum class ResourceType : uint32_t
+  enum class Type : uint32_t
   {
     Unknown, Mesh, Texture
   };
 
-  struct ResourceDesc
+  struct RESOURCE_DESC
   {
-    ResourceType Type = ResourceType::Unknown;
+    Type Type = Type::Unknown;
     uint32_t Index = -1;
   };
 
@@ -27,7 +27,7 @@ namespace Rose::Framework::Internal
     IResource() = default;
     virtual ~IResource() = default;
 
-    virtual ResourceType GetType() const = 0;
+    virtual Type GetType() const = 0;
   };
 
 } //  namespace Rose::Framework::Internal

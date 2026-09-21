@@ -13,9 +13,9 @@
   - Работа с лоадером
     - *Регистрация лоадера* `void RegistryLoader() {...}`
   - Работа с ресурсом
-    - *Загрузка* `ResourceDesc UploadResource(const std::string& Path) {...}`
-    - *Удаление* `void DeleteResource(ResourceDesc& Desc) {...}`
-    - *Доступ* `T* LoadResource(ResourceDesc& Desc) {...}`
+    - *Загрузка* `RESOURCE_DESC UploadResource(const std::string& Path) {...}`
+    - *Удаление* `void DeleteResource(RESOURCE_DESC& Desc) {...}`
+    - *Доступ* `T* LoadResource(RESOURCE_DESC& Desc) {...}`
 
 #### Architecture
 ```text
@@ -56,11 +56,11 @@
 1. Хранение ресурсов внутри `AssetManger` 
 ```C++
   // ↓ Список поддерживаемых расширений ↓
-  enum class ResourceType : uint32_t { Mesh, Texture, Audio, Animation, Unknown };
+  enum class Type : uint32_t { Mesh, Texture, Audio, Animation, Unknown };
   
   // ↓ Описатель ресурса ↓
-  struct ResourceDesc {
-    ResourceType Type = ResourceType::Unknown;
+  struct RESOURCE_DESC {
+    Type Type = Type::Unknown;
     uint32_t Index = -1;
   };
 
@@ -71,7 +71,7 @@
   std::vector<std::shared_ptr<IResourceLoader>> m_pResourceLoaders;
   
   // ↓ Мапа для доступа через Path ↓
-  std::unordered_map<std::string, ResourceDesc> m_ResourceMap;
+  std::unordered_map<std::string, RESOURCE_DESC> m_ResourceMap;
   
   // ↓ Вектора когда-либо загруженных ассетов ↓
   std::vector<std::shared_ptr<IMesh>> m_pMeshes;
@@ -112,7 +112,7 @@
   m_pAssetManager->UploadResource("Path");
 ```
 
-Внутри `ResourceDesc UploadResource(const std::string& Path) {...}`
+Внутри `RESOURCE_DESC UploadResource(const std::string& Path) {...}`
 
 1. Подготовка.
 ```C++
@@ -122,7 +122,7 @@
   }
 
   // ↓ *Базовый дескриптор* ↓
-  ResourceDesc Resource = {};
+  RESOURCE_DESC Resource = {};
 
   // ↓ *Расширение файла* ↓
   std::string FileExtension = std::filesystem::path(Path).extension().string();
@@ -153,7 +153,7 @@
   
   switch (Resource.Type) {
     // ↓ *Тип: Меш* ↓
-    case (ResourceType::Mesh): {
+    case (Type::Mesh): {
       // ↓ *Апкаст до нужного указателя* ↓
       std::shared_ptr<IMesh> pMesh = std::static_pointer_cast<IMesh>(pResource);
 
@@ -183,14 +183,14 @@
     }
 
     // ↓ *Тип: Текстура* ↓
-    case (ResourceType::Texture): {...}
+    case (Type::Texture): {...}
 
     // ↓ *Тип: Анимация/Аудио/...* ↓
     case (...): {...}
 
     // ↓ *Вернуть пустой* ↓
     default: {
-      return { ResourceType::Unknown, -1 };
+      return { Type::Unknown, -1 };
     }
   }
   
@@ -209,9 +209,9 @@
 
 ```C++
   template<typename T>
-  T* GetResource(const ResourceDesc& Desc) {
+  T* GetResource(const RESOURCE_DESC& Desc) {
     switch (Desc.Type) {
-      case (ResourceType::Mesh): {
+      case (Type::Mesh): {
         // ↓ *Возврат указателя* ↓
         if (!(Desc.Index < m_pMeshes.size())) {
           assert(
@@ -226,7 +226,7 @@
         break;
       }
 
-      case (ResourceType::Texture): {...}
+      case (Type::Texture): {...}
 
       case (...): {...}
 
@@ -254,10 +254,10 @@
       return;
     }
 
-    ResourceDesc Desc = it->second;
+    RESOURCE_DESC Desc = it->second;
 
     switch (Desc.Type) {
-      case (ResourceType::Mesh): {
+      case (Type::Mesh): {
         // ↓ *Освобождаем ОЗУ/VRAM* ↓
         m_pMeshes[Desc.Index].reset();
 
@@ -267,7 +267,7 @@
         break;
       }
 
-      case (ResourceType::Texture): {...}
+      case (Type::Texture): {...}
 
       case (...) {...}
     }
@@ -356,6 +356,6 @@ Resources/
     virtual ~IResource() = default;
     
     // ↓ Метод для определения типа ресурса класса ↓
-    virtual ResourceType GetType() const = 0;
+    virtual Type GetType() const = 0;
   };
 ```
