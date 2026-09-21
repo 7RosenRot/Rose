@@ -35,7 +35,7 @@ namespace Rose::Framework
     void DeleteResource(_In_ const std::string& Path);
     
     template <typename T>
-    T* GetResource(_In_ const Internal::ResourceDesc& Desc);
+    std::shared_ptr<T> GetResource(_In_ const Internal::ResourceDesc& Desc);
 
    private:
     template <typename T>
@@ -45,7 +45,7 @@ namespace Rose::Framework
     class ResourcePool
     {
      public:
-      std::uint32_t Push(std::shared_ptr<T> pResource)
+      std::uint32_t Push(_In_ std::shared_ptr<T> pResource)
       {
         if (!m_FreeIndices.empty())
         {
@@ -58,10 +58,11 @@ namespace Rose::Framework
         }
 
         m_pResources.push_back(pResource);
+
         return static_cast<std::uint32_t>(m_pResources.size() - 1);
       }
 
-      void Pop(std::uint32_t Index)
+      void Pop(_In_ std::uint32_t Index)
       {
         if (Index < m_pResources.size())
         {
@@ -70,8 +71,7 @@ namespace Rose::Framework
         }
       }
 
-      template <typename T>
-      std::shared_ptr<T> Get(std::uint32_t Index)
+      std::shared_ptr<T> Get(_In_ std::uint32_t Index)
       {
         if (Index < m_pResources.size())
         {
@@ -88,8 +88,10 @@ namespace Rose::Framework
     std::shared_ptr<Renderer::IRenderer> m_pRenderer;
 
     std::vector<std::shared_ptr<Internal::IResourceLoader>> m_pLoaders;
-
+    
     std::unordered_map<std::string, Internal::ResourceDesc> m_ResourceMap;
+
+    ResourcePool<Internal::IResource> m_ResourcePool;
   };
 
   template <typename T>
@@ -103,39 +105,18 @@ namespace Rose::Framework
   }
 
   template<typename T>
-  T* AssetManager::GetResource(_In_ const Internal::ResourceDesc& Desc)
+  std::shared_ptr<T> AssetManager::GetResource(_In_ const Internal::ResourceDesc& Desc)
   {
-    switch (Desc.Type)
+    auto pResource = m_ResourcePool.Get(Desc.Index);
+
+    if (!pResource)
     {
-      case Internal::ResourceType::Mesh:
-      {
-        if (Desc.Index < m_pMeshes.size())
-        {
-          return static_cast<T*>(m_pMeshes[Desc.Index].get());
-        }
-      
-        break;
-      }
+      // Logger expected
 
-      case Internal::ResourceType::Texture:
-      {
-        if (Desc.Index < m_pTextures.size())
-        {
-          return static_cast<T*>(m_pTextures[Desc.Index].get());
-        }
-      
-        break;
-      }
-
-      /* case Internal::ResourceType::Other: {...} */
-
-      default:
-      {
-        return nullptr;
-      }
+      return nullptr;
     }
 
-    return nullptr;
+    return std::dynamic_pointer_cast<T>(pResource);
   }
 
 } //  Rose::Framework
