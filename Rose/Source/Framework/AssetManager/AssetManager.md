@@ -13,9 +13,9 @@
   - Работа с лоадером
     - *Регистрация лоадера* `void RegistryLoader() {...}`
   - Работа с ресурсом
-    - *Загрузка* `RESOURCE_DESC UploadResource(const std::string& Path) {...}`
-    - *Удаление* `void DeleteResource(RESOURCE_DESC& Desc) {...}`
-    - *Доступ* `T* LoadResource(RESOURCE_DESC& Desc) {...}`
+    - *Загрузка* `RESOURCE_HANDLE UploadResource(const std::string& Path) {...}`
+    - *Удаление* `void DeleteResource(RESOURCE_HANDLE& Desc) {...}`
+    - *Доступ* `T* LoadResource(RESOURCE_HANDLE& Desc) {...}`
 
 #### Architecture
 ```text
@@ -59,7 +59,7 @@
   enum class Type : uint32_t { Mesh, Texture, Audio, Animation, Unknown };
   
   // ↓ Описатель ресурса ↓
-  struct RESOURCE_DESC {
+  struct RESOURCE_HANDLE {
     Type Type = Type::Unknown;
     uint32_t Index = -1;
   };
@@ -71,7 +71,7 @@
   std::vector<std::shared_ptr<IResourceLoader>> m_pResourceLoaders;
   
   // ↓ Мапа для доступа через Path ↓
-  std::unordered_map<std::string, RESOURCE_DESC> m_ResourceMap;
+  std::unordered_map<std::string, RESOURCE_HANDLE> m_ResourceMap;
   
   // ↓ Вектора когда-либо загруженных ассетов ↓
   std::vector<std::shared_ptr<IMesh>> m_pMeshes;
@@ -112,7 +112,7 @@
   m_pAssetManager->UploadResource("Path");
 ```
 
-Внутри `RESOURCE_DESC UploadResource(const std::string& Path) {...}`
+Внутри `RESOURCE_HANDLE UploadResource(const std::string& Path) {...}`
 
 1. Подготовка.
 ```C++
@@ -122,7 +122,7 @@
   }
 
   // ↓ *Базовый дескриптор* ↓
-  RESOURCE_DESC Resource = {};
+  RESOURCE_HANDLE Resource = {};
 
   // ↓ *Расширение файла* ↓
   std::string FileExtension = std::filesystem::path(Path).extension().string();
@@ -209,7 +209,7 @@
 
 ```C++
   template<typename T>
-  T* GetResource(const RESOURCE_DESC& Desc) {
+  T* GetResource(const RESOURCE_HANDLE& Desc) {
     switch (Desc.Type) {
       case (Type::Mesh): {
         // ↓ *Возврат указателя* ↓
@@ -254,7 +254,7 @@
       return;
     }
 
-    RESOURCE_DESC Desc = it->second;
+    RESOURCE_HANDLE Desc = it->second;
 
     switch (Desc.Type) {
       case (Type::Mesh): {

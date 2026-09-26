@@ -74,11 +74,11 @@ namespace Rose::Framework
     void Initialize(_In_ const std::shared_ptr<Renderer::IRenderer>& pRenderer);
     void Shutdown();
     
-    Internal::RESOURCE_DESC UploadResource(_In_ const std::string& Path);
+    Internal::RESOURCE_HANDLE UploadResource(_In_ const std::string& Path);
     void DeleteResource(_In_ const std::string& Path);
     
     template <typename T>
-    std::shared_ptr<T> GetResource(_In_ const Internal::RESOURCE_DESC& Desc);
+    std::shared_ptr<T> GetResource(_In_ const Internal::RESOURCE_HANDLE& Desc);
 
    private:
     template <typename T>
@@ -86,7 +86,7 @@ namespace Rose::Framework
     
     std::shared_ptr<Renderer::IRenderer> m_pRenderer;
     std::vector<std::shared_ptr<Internal::IResourceLoader>> m_pLoaders;
-    std::unordered_map<std::string, Internal::RESOURCE_DESC> m_ResourceMap;
+    std::unordered_map<std::string, Internal::RESOURCE_HANDLE> m_ResourceMap;
     Pool<Internal::IResource> m_Pool;
   };
 
@@ -101,7 +101,7 @@ namespace Rose::Framework
   }
 
   template<typename T>
-  std::shared_ptr<T> AssetManager::GetResource(_In_ const Internal::RESOURCE_DESC& Resource)
+  std::shared_ptr<T> AssetManager::GetResource(_In_ const Internal::RESOURCE_HANDLE& Resource)
   {
     auto pResource = m_Pool.Get(Resource.Index);
 
