@@ -22,51 +22,76 @@
 template <typename T>
 class Pool
 {
- public:
-  std::uint32_t Push(_In_ std::shared_ptr<T> pResource)
+ private:
+  struct Slot
   {
+    Rose::Framework::Internal::RESOURCE_HANDLE Handle{};
+    std::shared_ptr<T> pResource;
+  };
+
+  std::vector<Slot> m_Slots;
+  std::queue<std::uint32_t> m_FreeIndices;
+
+ public:
+  std::uint32_t Push(_In_ const std::shared_ptr<T>& pResource)
+  {
+    std::uint32_t Index;
+
     if (!m_FreeIndices.empty())
     {
-      std::uint32_t Index = m_FreeIndices.front();
+      Index = m_FreeIndices.front();
       m_FreeIndices.pop();
-      m_pResources[Index] = pResource;
-      
-      return Index;
+
+      m_Slots[Index].pResource = pResource;
+      m_Slots[Index].Handle.SetType(pResource->GetType());
+      m_Slots[Index].Handle.UpStage();
+      m_Slots[Index].Handle.SetIndex(Index);
     }
-    m_pResources.push_back(pResource);
-    
-    return static_cast<std::uint32_t>(m_pResources.size() - 1);
+    else
+    {
+      Index = static_cast<std::uint32_t>(m_Slots.size());
+
+      Rose::Framework::Internal::RESOURCE_HANDLE Handle{
+        pResource->GetType(),
+        0,
+        Index
+      };
+      
+      m_Slots.push_back({
+        pResource,
+        Handle 
+      });
+    }
+
+    return m_Slots[Index].Handle.GetID();
   }
   
-  void Pop(_In_ std::uint32_t Index)
+  void Pop(_In_ std::uint32_t ID)
   {
+    std::uint32_t Stage = ID & 0xFFF00000;
+    std::uint32_t Index = ID & 0x000FFFFF;
+
     if (Index < m_pResources.size())
     {
-      m_pResources[Index].reset();
+      m_pResources[Index].pResource.reset();
+      m_pResources[Index].Stage = Stage;
 
       m_FreeIndices.push(Index);
     }
   }
   
-  std::shared_ptr<T> Get(_In_ std::uint32_t Index)
+  std::shared_ptr<T> Get(_In_ std::uint32_t ID)
   {
+    std::uint32_t Stage = ID & 0xFFF00000;
+    std::uint32_t Index = ID & 0x000FFFFF;
+
     if (Index < m_pResources.size())
     {
-      return m_pResources[Index];
+      return m_pResources[Index].pResource;
     }
   
     return nullptr;
   }
-
- private:
-  struct Slot
-  {
-    std::shared_ptr<T> pResource;
-    std::uint32_t Stage = 1;
-  };
-
-  std::vector<Slot> m_Slots;
-  std::queue<std::uint32_t> m_FreeIndices;
 };
 
 namespace Rose::Framework
@@ -77,20 +102,20 @@ namespace Rose::Framework
    public:
     AssetManager() = default;
     ~AssetManager() = default;
-    
+
     void Initialize(_In_ const std::shared_ptr<Renderer::IRenderer>& pRenderer);
     void Shutdown();
-    
+
     Internal::RESOURCE_HANDLE UploadResource(_In_ const std::string& Path);
     void DeleteResource(_In_ const std::string& Path);
-    
+
     template <typename T>
     std::shared_ptr<T> GetResource(_In_ const Internal::RESOURCE_HANDLE& Desc);
 
    private:
     template <typename T>
     void RegistryLoader();
-    
+
     std::shared_ptr<Renderer::IRenderer> m_pRenderer;
     std::vector<std::shared_ptr<Internal::IResourceLoader>> m_pLoaders;
     std::unordered_map<std::string, Internal::RESOURCE_HANDLE> m_ResourceMap;

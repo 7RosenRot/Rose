@@ -45,9 +45,11 @@ namespace Rose::Framework {
       return Resource;
     }
 
-    Resource.TYPE = pResource->GetType();
+    Resource.SetType(pResource->GetType());
 
-    Resource.SetIndex(m_Pool.Push(pResource));
+    auto [Stage, Index] = m_Pool.Push(pResource);
+    Resource.SetStage(Stage);
+    Resource.SetIndex(Index);
 
     m_ResourceMap.emplace(Path, Resource);
 
@@ -63,7 +65,7 @@ namespace Rose::Framework {
 
     Internal::RESOURCE_HANDLE Resource = it->second;
 
-    m_Pool.Pop(Resource.ID);
+    m_Pool.Pop(Resource.GetID());
 
     m_ResourceMap.erase(it);
   }

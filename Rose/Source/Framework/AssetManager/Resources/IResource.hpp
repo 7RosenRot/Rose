@@ -10,6 +10,7 @@ namespace Rose::Framework::Internal
 
   struct RESOURCE_HANDLE
   {
+   private:
     static constexpr std::uint32_t INDEX_MAX = 0x000FFFFFU;
     static constexpr std::uint32_t STAGE_MAX = 0x00000FFFU;
 
@@ -17,16 +18,17 @@ namespace Rose::Framework::Internal
     static constexpr std::uint32_t STAGE_MASK = 0xFFF00000U;
 
     Type TYPE = Type::Unknown;
-    uint32_t ID = 0xFFFFFFFFU;
-    
+    uint32_t ID = 0x00000000U;
+
     //       max: 4096
     //       stage
     //       ↓
-    //   0x00100001
+    //   0x001000001
     //        ↑
     // entities
     // max: 1048576
 
+   public:
     RESOURCE_HANDLE() = default;
     
     RESOURCE_HANDLE(
@@ -52,6 +54,16 @@ namespace Rose::Framework::Internal
       return TYPE != Type::Unknown && ID != 0xFFFFFFFFU;
     }
 
+    inline Type GetType() const noexcept
+    {
+      return TYPE;
+    }
+
+    inline std::uint32_t GetID() const noexcept
+    {
+      return ID;
+    }
+
     inline std::uint32_t GetIndex() const noexcept
     {
       return ID & INDEX_MASK;
@@ -62,7 +74,12 @@ namespace Rose::Framework::Internal
       return (ID & STAGE_MASK) >> 20U;
     }
 
-    inline void SetIndex(std::uint32_t Index) noexcept
+    inline void SetType(_In_ const Type& Type) noexcept
+    {
+      TYPE = Type;
+    }
+
+    inline void SetIndex(_In_ std::uint32_t& Index) noexcept
     {
       if (Index > INDEX_MAX)
       {
@@ -70,11 +87,11 @@ namespace Rose::Framework::Internal
 
         return;
       }
-      
+
       ID = (ID & STAGE_MASK) | (Index & INDEX_MASK);
     }
-    
-    inline void SetStage(std::uint32_t Stage) noexcept
+
+    inline void SetStage(_In_ std::uint32_t& Stage) noexcept
     {
       if (Stage > STAGE_MAX)
       {
@@ -122,7 +139,7 @@ namespace Rose::Framework::Internal
       return *this;
     }
 
-    bool operator==(const RESOURCE_HANDLE Other) const noexcept
+    bool operator==(_In_ const RESOURCE_HANDLE Other) const noexcept
     {
       return (TYPE == Other.TYPE) && (ID == Other.ID);
     }
