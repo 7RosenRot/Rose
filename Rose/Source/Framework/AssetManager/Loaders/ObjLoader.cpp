@@ -1,4 +1,23 @@
 #include "ObjLoader.hpp"
+#include <unordered_map>
+
+struct VKey
+{
+  int v, vt, vn;
+
+  bool operator==(const VKey& Other) const
+  {
+    return v == Other.v && vt == Other.vt && vn == Other.vn;
+  }
+};
+
+struct VHasher
+{
+  std::size_t operator()(const VKey& Key) const
+  {
+    return std::hash<int>()(Key.v) ^ (std::hash<int>()(Key.vt) << 1) ^ (std::hash<int>()(Key.vn) << 2);
+  }
+};
 
 namespace Rose::Framework::Internal
 {
@@ -45,111 +64,121 @@ namespace Rose::Framework::Internal
     std::vector<Rose::Core::Math::FLOAT3> NormalBuffer;
 
     std::string Token;
-    std::uint32_t Index = 0;
+    std::unordered_map<VKey, std::uint32_t, VHasher> UniqueVertices;
 
     while (std::getline(ObjFile, Token))
     {
-      std::istringstream VertexToken(Token);
-      std::string VertexData_t;
+      std::istringstream TokenData(Token);
+      std::string TokenData_t;
 
-      VertexToken >> VertexData_t;
-      if (VertexData_t == "v")
+      TokenData >> TokenData_t;
+      
+      if (TokenData_t == "v")
       {
         Rose::Core::Math::FLOAT3 Position;
-        VertexToken >> Position.x >> Position.y >> Position.z;
+        TokenData >> Position.x >> Position.y >> Position.z;
         Position.z *= -1.0f;
 
         PositionBuffer.push_back(Position);
       }
 
-      else if (VertexData_t == "vt")
+      else if (TokenData_t == "vt")
       {
         Rose::Core::Math::FLOAT2 Texture;
-        VertexToken >> Texture.x >> Texture.y;
+        TokenData >> Texture.x >> Texture.y;
         Texture.y = 1.0f - Texture.y;
 
         TextureBuffer.push_back(Texture);
       }
 
-      else if (VertexData_t == "vn")
+      else if (TokenData_t == "vn")
       {
         Rose::Core::Math::FLOAT3 Normal;
-        VertexToken >> Normal.x >> Normal.y >> Normal.z;
+        TokenData >> Normal.x >> Normal.y >> Normal.z;
         Normal.z *= -1.0f;
 
         NormalBuffer.push_back(Normal);
       }
 
-      else if (VertexData_t == "f")
+      else if (TokenData_t == "f")
       {
-        std::string FaceData_t;
+        std::vector<std::uint32_t> FaceIndices;
         
-        std::vector<Vertex> VertexList;
+        // face: v/vt/vn v/vt/vn v/vt/vn
+        int vIdx = 0, vtIdx = 0, vnIdx = 0;
+        char slash;
         
-        while (VertexToken >> FaceData_t)
+        while (TokenData >> vIdx)
         {
-          std::istringstream FaceToken(FaceData_t);
-
-          // face: v/vt/vn v/vt/vn v/vt/vn
-          int vIdx = 0, vtIdx = 0, vnIdx = 0;
-          char slash;
-        
-          FaceToken >> vIdx;
-  
-          if (FaceToken.peek() == '/')
+          if (TokenData.peek() == '/')
           {
-            FaceToken >> slash;
+            TokenData >> slash;
 
-            if (FaceToken.peek() == '/')
+            if (TokenData.peek() == '/')
             {
-              FaceToken >> slash;
-              FaceToken >> vnIdx;
+              TokenData >> slash;
+              TokenData >> vnIdx;
             }
 
             else
             {
-              FaceToken >> vtIdx;
+              TokenData >> vtIdx;
 
-              if (FaceToken.peek() == '/')
+              if (TokenData.peek() == '/')
               {
-                FaceToken >> slash;
-                FaceToken >> vnIdx;
+                TokenData >> slash;
+                TokenData >> vnIdx;
               }
             }
           }
-  
-          Vertex VertexData;
-  
-          if (vIdx > 0)
+
+          VKey Key{vIdx, vtIdx, vnIdx};
+          std::uint32_t Index = 0;
+
+          auto it = UniqueVertices.find(Key);
+          if (it != UniqueVertices.end())
           {
-            VertexData.Position = PositionBuffer[vIdx - 1];
-          }
-  
-          if (vtIdx > 0)
-          {
-            VertexData.Texture = TextureBuffer[vtIdx - 1];
-          }
-  
-          if (vnIdx > 0)
-          {
-            VertexData.Normal = NormalBuffer[vnIdx - 1];
+            Index = it->second;
           }
 
-          VertexList.push_back(VertexData);
-
-          if (VertexList.size() > 2)
+          else
           {
-            for (std::size_t i = 1; i + 1 < VertexList.size(); i += 1)
+            Vertex Vertex_{};
+    
+            if (vIdx > 0 && static_cast<size_t>(vIdx) <= PositionBuffer.size())
             {
-              Vertices.push_back(VertexList[0]);
-              Indices.push_back(Index++);
-
-              Vertices.push_back(VertexList[i]);
-              Indices.push_back(Index++);
-
-              Vertices.push_back(VertexList[i + 1]);
-              Indices.push_back(Index++);
+              Vertex_.Position = PositionBuffer[vIdx - 1];
             }
+    
+            if (vtIdx > 0 && static_cast<size_t>(vtIdx) <= TextureBuffer.size())
+            {
+              Vertex_.Texture = TextureBuffer[vtIdx - 1];
+            }
+  
+            if (vnIdx > 0 && static_cast<size_t>(vnIdx) <= NormalBuffer.size())
+            {
+              Vertex_.Normal = NormalBuffer[vnIdx - 1];
+            }
+  
+            Index = static_cast<std::uint32_t>(Vertices.size());
+
+            Vertices.push_back(Vertex_);
+
+            UniqueVertices[Key] = Index;
+          }
+
+          FaceIndices.push_back(Index);
+
+          vIdx = 0; vtIdx = 0; vnIdx = 0;
+        }
+
+        if (FaceIndices.size() >= 3)
+        {
+          for (std::size_t i = 1; i + 1 < FaceIndices.size(); i += 1)
+          {
+            Indices.push_back(FaceIndices[0]);
+            Indices.push_back(FaceIndices[i]);
+            Indices.push_back(FaceIndices[i + 1]);
           }
         }
       }

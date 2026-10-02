@@ -43,6 +43,7 @@ class Pool
     if (Index < m_pResources.size())
     {
       m_pResources[Index].reset();
+
       m_FreeIndices.push(Index);
     }
   }
@@ -58,7 +59,13 @@ class Pool
   }
 
  private:
-  std::vector<std::shared_ptr<T>> m_pResources;
+  struct Slot
+  {
+    std::shared_ptr<T> pResource;
+    std::uint32_t Stage = 1;
+  };
+
+  std::vector<Slot> m_Slots;
   std::queue<std::uint32_t> m_FreeIndices;
 };
 

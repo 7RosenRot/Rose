@@ -16,8 +16,8 @@ namespace Rose::Framework::Internal
     static constexpr std::uint32_t INDEX_MASK = 0x000FFFFFU;
     static constexpr std::uint32_t STAGE_MASK = 0xFFF00000U;
 
-    Type m_Type = Type::Unknown;
-    uint32_t m_Index = 0xFFFFFFFFU;
+    Type TYPE = Type::Unknown;
+    uint32_t ID = 0xFFFFFFFFU;
     
     //       max: 4096
     //       stage
@@ -31,35 +31,35 @@ namespace Rose::Framework::Internal
     
     RESOURCE_HANDLE(
       _In_ Internal::Type Type,
-      _In_ std::uint32_t Index,
-      _In_ std::uint32_t Stage
-    ) : m_Type(Type)
+      _In_ std::uint32_t Stage,
+      _In_ std::uint32_t Index
+    ) : TYPE(Type)
     {
-      SetIndex(Index);
-
       SetStage(Stage);
+      
+      SetIndex(Index);
     }
 
     inline void Reset() noexcept
     {
-      m_Type = Type::Unknown;
+      TYPE = Type::Unknown;
       
-      m_Index = 0xFFFFFFFF;
+      ID = 0xFFFFFFFF;
     }
 
     inline bool IsValid() const noexcept
     {
-      return m_Type != Type::Unknown && m_Index != 0xFFFFFFFFU;
+      return TYPE != Type::Unknown && ID != 0xFFFFFFFFU;
     }
 
     inline std::uint32_t GetIndex() const noexcept
     {
-      return m_Index & INDEX_MASK;
+      return ID & INDEX_MASK;
     }
 
     inline std::uint32_t GetStage() const noexcept
     {
-      return (m_Index & STAGE_MASK) >> 20U;
+      return (ID & STAGE_MASK) >> 20U;
     }
 
     inline void SetIndex(std::uint32_t Index) noexcept
@@ -71,7 +71,7 @@ namespace Rose::Framework::Internal
         return;
       }
       
-      m_Index = (m_Index & STAGE_MASK) | (Index & INDEX_MASK);
+      ID = (ID & STAGE_MASK) | (Index & INDEX_MASK);
     }
     
     inline void SetStage(std::uint32_t Stage) noexcept
@@ -83,7 +83,7 @@ namespace Rose::Framework::Internal
         return;
       }
 
-      m_Index = (Stage << 20U) | (m_Index & INDEX_MASK);
+      ID = (Stage << 20U) | (ID & INDEX_MASK);
     }
 
     inline void UpIndex() noexcept
@@ -92,12 +92,12 @@ namespace Rose::Framework::Internal
 
       if (Index < INDEX_MASK)
       {
-        ++m_Index;
+        ++ID;
       }
 
       else
       {
-        m_Index &= ~INDEX_MASK;
+        ID &= ~INDEX_MASK;
       }
     }
 
@@ -112,7 +112,7 @@ namespace Rose::Framework::Internal
         Stage = 1;
       }
 
-      m_Index = (Stage << 20U) | (m_Index & INDEX_MASK);
+      ID = (Stage << 20U) | (ID & INDEX_MASK);
     }
 
     RESOURCE_HANDLE& operator++() noexcept
@@ -124,7 +124,7 @@ namespace Rose::Framework::Internal
 
     bool operator==(const RESOURCE_HANDLE Other) const noexcept
     {
-      return (m_Type == Other.m_Type) && (m_Index == Other.m_Index);
+      return (TYPE == Other.TYPE) && (ID == Other.ID);
     }
 
     bool operator!=(const RESOURCE_HANDLE Other) const noexcept
@@ -135,9 +135,9 @@ namespace Rose::Framework::Internal
 
   struct Vertex
   {
-    Core::Math::FLOAT3 Position;
-    Core::Math::FLOAT2 Texture;
-    Core::Math::FLOAT3 Normal;
+    Core::Math::FLOAT3 Position = {0.0F, 0.0F, 0.0F};
+    Core::Math::FLOAT2 Texture  = {0.0F, 0.0F};
+    Core::Math::FLOAT3 Normal   = {0.0F, 0.0F, 0.0F};
   };
   
   class IResource
