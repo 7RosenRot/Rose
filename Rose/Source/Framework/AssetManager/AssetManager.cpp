@@ -47,9 +47,7 @@ namespace Rose::Framework {
 
     Resource.SetType(pResource->GetType());
 
-    auto [Stage, Index] = m_Pool.Push(pResource);
-    Resource.SetStage(Stage);
-    Resource.SetIndex(Index);
+    m_Pool.Push(pResource);
 
     m_ResourceMap.emplace(Path, Resource);
 

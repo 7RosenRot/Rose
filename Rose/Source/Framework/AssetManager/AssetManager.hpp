@@ -23,13 +23,14 @@ template <typename T>
 class Pool
 {
  private:
+  template <typename T>
   struct Slot
   {
     Rose::Framework::Internal::RESOURCE_HANDLE Handle{};
-    std::shared_ptr<T> pResource;
+    std::shared_ptr<T> pResource = nullptr;
   };
 
-  std::vector<Slot> m_Slots;
+  std::vector<Slot<T>> m_Slots;
   std::queue<std::uint32_t> m_FreeIndices;
 
  public:
@@ -57,24 +58,20 @@ class Pool
         Index
       };
       
-      m_Slots.push_back({
-        pResource,
-        Handle 
-      });
+      m_Slots.push_back({Handle, pResource});
     }
 
     return m_Slots[Index].Handle.GetID();
   }
   
-  void Pop(_In_ std::uint32_t ID)
+  void Pop(_In_ const std::uint32_t& ID)
   {
     std::uint32_t Stage = ID & 0xFFF00000;
     std::uint32_t Index = ID & 0x000FFFFF;
 
-    if (Index < m_pResources.size())
+    if (Index < m_Slots.size())
     {
-      m_pResources[Index].pResource.reset();
-      m_pResources[Index].Stage = Stage;
+      m_Slots[Index].pResource.reset();
 
       m_FreeIndices.push(Index);
     }
@@ -85,9 +82,9 @@ class Pool
     std::uint32_t Stage = ID & 0xFFF00000;
     std::uint32_t Index = ID & 0x000FFFFF;
 
-    if (Index < m_pResources.size())
+    if (Index < m_Slots.size())
     {
-      return m_pResources[Index].pResource;
+      return m_Slots[Index].pResource;
     }
   
     return nullptr;

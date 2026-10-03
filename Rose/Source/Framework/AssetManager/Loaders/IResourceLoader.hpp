@@ -4,7 +4,7 @@
 #include <memory>
 
 #include "Renderer/IRenderer.hpp"
-#include "Resources/IResource.hpp"
+#include "../Resources/IResource.hpp"
 
 namespace Rose::Framework::Internal
 {

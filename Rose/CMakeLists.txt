@@ -11,6 +11,8 @@ add_executable(
   Rose WIN32 ${SOURCES}
 )
 
+target_compile_features(Rose PRIVATE cxx_std_17)
+
 target_include_directories(
   Rose PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/External
