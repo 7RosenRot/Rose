@@ -19,34 +19,37 @@
 #include "Loaders/ObjLoader.hpp"
 #include "Loaders/PngLoader.hpp"
 
+struct Slot
+{
+  Rose::Framework::Internal::RESOURCE_HANDLE Handle{};
+  std::shared_ptr<Rose::Framework::Internal::IResource> Ptr = nullptr;
+};
+
 template <typename T>
 class Pool
 {
  private:
-  template <typename T>
-  struct Slot
-  {
-    Rose::Framework::Internal::RESOURCE_HANDLE Handle{};
-    std::shared_ptr<T> pResource = nullptr;
-  };
-
-  std::vector<Slot<T>> m_Slots;
+  std::vector<Slot> m_Slots;
   std::queue<std::uint32_t> m_FreeIndices;
 
  public:
   std::uint32_t Push(_In_ const std::shared_ptr<T>& pResource)
   {
-    std::uint32_t Index;
+    std::uint32_t Index = 0;
+
+    Rose::Framework::Internal::RESOURCE_HANDLE Handle{};
+    Handle.SetType(pResource->GetType());
+    Handle.SetStage(0);
 
     if (!m_FreeIndices.empty())
     {
       Index = m_FreeIndices.front();
       m_FreeIndices.pop();
 
-      m_Slots[Index].pResource = pResource;
       m_Slots[Index].Handle.SetType(pResource->GetType());
       m_Slots[Index].Handle.UpStage();
       m_Slots[Index].Handle.SetIndex(Index);
+      m_Slots[Index].Ptr = pResource;
     }
     else
     {
