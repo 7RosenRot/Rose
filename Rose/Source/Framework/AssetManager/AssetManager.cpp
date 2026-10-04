@@ -22,8 +22,6 @@ namespace Rose::Framework {
       return it->second;
     }
 
-    Internal::RESOURCE_HANDLE Resource = {};
-
     std::string FileExtension = std::filesystem::path(Path).extension().string();
 
     std::shared_ptr<Internal::IResource> pResource = nullptr;
@@ -38,20 +36,20 @@ namespace Rose::Framework {
       }
     }
 
+    Internal::RESOURCE_HANDLE Handle{};
+
     if (!pResource)
     {
       // LOGGER expected
 
-      return Resource;
+      return Handle;
     }
 
-    Resource.SetType(pResource->GetType());
+    Handle = m_Pool.Push(pResource);
 
-    m_Pool.Push(pResource);
+    m_ResourceMap.emplace(Path, Handle);
 
-    m_ResourceMap.emplace(Path, Resource);
-
-    return Resource;
+    return Handle;
   }
 
   void AssetManager::DeleteResource(const std::string& Path) {
@@ -61,9 +59,9 @@ namespace Rose::Framework {
       return;
     }
 
-    Internal::RESOURCE_HANDLE Resource = it->second;
+    Internal::RESOURCE_HANDLE Handle = it->second;
 
-    m_Pool.Pop(Resource.GetID());
+    m_Pool.Pop(Handle);
 
     m_ResourceMap.erase(it);
   }

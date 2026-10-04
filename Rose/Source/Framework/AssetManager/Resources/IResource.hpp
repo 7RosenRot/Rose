@@ -3,7 +3,7 @@
 namespace Rose::Framework::Internal
 {
 
-  enum class Type : uint32_t
+  enum class Type : std::uint32_t
   {
     Unknown, Mesh, Texture
   };
@@ -46,12 +46,12 @@ namespace Rose::Framework::Internal
     {
       TYPE = Type::Unknown;
       
-      ID = 0xFFFFFFFF;
+      ID = 0x00000000U;
     }
 
     inline bool IsValid() const noexcept
     {
-      return TYPE != Type::Unknown && ID != 0xFFFFFFFFU;
+      return TYPE != Type::Unknown;
     }
 
     inline Type GetType() const noexcept
@@ -103,40 +103,13 @@ namespace Rose::Framework::Internal
       ID = (Stage << 20U) | (ID & INDEX_MASK);
     }
 
-    inline void UpIndex() noexcept
-    {
-      std::uint32_t Index = GetIndex();
-
-      if (Index < INDEX_MASK)
-      {
-        ++ID;
-      }
-
-      else
-      {
-        ID &= ~INDEX_MASK;
-      }
-    }
-
     inline void UpStage() noexcept
     {
       std::uint32_t Stage = GetStage();
 
       Stage = (Stage + 1U) & STAGE_MAX;
 
-      if (Stage == 0)
-      {
-        Stage = 1;
-      }
-
       ID = (Stage << 20U) | (ID & INDEX_MASK);
-    }
-
-    RESOURCE_HANDLE& operator++() noexcept
-    {
-      UpIndex();
-
-      return *this;
     }
 
     bool operator==(_In_ const RESOURCE_HANDLE Other) const noexcept

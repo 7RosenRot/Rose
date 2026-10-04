@@ -19,27 +19,23 @@
 #include "Loaders/ObjLoader.hpp"
 #include "Loaders/PngLoader.hpp"
 
-struct Slot
-{
-  Rose::Framework::Internal::RESOURCE_HANDLE Handle{};
-  std::shared_ptr<Rose::Framework::Internal::IResource> Ptr = nullptr;
-};
-
-template <typename T>
 class Pool
 {
  private:
+  struct Slot
+  {
+    Rose::Framework::Internal::RESOURCE_HANDLE Handle{};
+    std::shared_ptr<Rose::Framework::Internal::IResource> Ptr = nullptr;
+  };
+
   std::vector<Slot> m_Slots;
   std::queue<std::uint32_t> m_FreeIndices;
 
  public:
-  std::uint32_t Push(_In_ const std::shared_ptr<T>& pResource)
+  Rose::Framework::Internal::RESOURCE_HANDLE 
+    Push(_In_ const std::shared_ptr<Rose::Framework::Internal::IResource>& pResource)
   {
     std::uint32_t Index = 0;
-
-    Rose::Framework::Internal::RESOURCE_HANDLE Handle{};
-    Handle.SetType(pResource->GetType());
-    Handle.SetStage(0);
 
     if (!m_FreeIndices.empty())
     {
@@ -47,47 +43,48 @@ class Pool
       m_FreeIndices.pop();
 
       m_Slots[Index].Handle.SetType(pResource->GetType());
-      m_Slots[Index].Handle.UpStage();
-      m_Slots[Index].Handle.SetIndex(Index);
       m_Slots[Index].Ptr = pResource;
     }
     else
     {
       Index = static_cast<std::uint32_t>(m_Slots.size());
 
-      Rose::Framework::Internal::RESOURCE_HANDLE Handle{
-        pResource->GetType(),
-        0,
-        Index
+      Rose::Framework::Internal::RESOURCE_HANDLE Handle
+      {
+        pResource->GetType(), 0, Index
       };
       
       m_Slots.push_back({Handle, pResource});
     }
 
-    return m_Slots[Index].Handle.GetID();
+    return m_Slots[Index].Handle;
   }
   
-  void Pop(_In_ const std::uint32_t& ID)
+  void Pop(_In_ const Rose::Framework::Internal::RESOURCE_HANDLE& Handle)
   {
-    std::uint32_t Stage = ID & 0xFFF00000;
-    std::uint32_t Index = ID & 0x000FFFFF;
+    std::uint32_t Index = Handle.GetIndex();
 
     if (Index < m_Slots.size())
     {
-      m_Slots[Index].pResource.reset();
+      m_Slots[Index].Handle.SetType(Rose::Framework::Internal::Type::Unknown);
+      m_Slots[Index].Handle.UpStage();
+      m_Slots[Index].Ptr.reset();
 
       m_FreeIndices.push(Index);
     }
   }
   
-  std::shared_ptr<T> Get(_In_ std::uint32_t ID)
+  std::shared_ptr<Rose::Framework::Internal::IResource>
+    Get(_In_ Rose::Framework::Internal::RESOURCE_HANDLE& Handle)
   {
-    std::uint32_t Stage = ID & 0xFFF00000;
-    std::uint32_t Index = ID & 0x000FFFFF;
+    std::uint32_t Index = Handle.GetIndex();
 
     if (Index < m_Slots.size())
     {
-      return m_Slots[Index].pResource;
+      if (m_Slots[Index].Handle.GetStage() == Handle.GetStage())
+      {
+        return m_Slots[Index].Ptr;
+      }
     }
   
     return nullptr;
@@ -119,7 +116,7 @@ namespace Rose::Framework
     std::shared_ptr<Renderer::IRenderer> m_pRenderer;
     std::vector<std::shared_ptr<Internal::IResourceLoader>> m_pLoaders;
     std::unordered_map<std::string, Internal::RESOURCE_HANDLE> m_ResourceMap;
-    Pool<Internal::IResource> m_Pool;
+    Pool m_Pool;
   };
 
   template <typename T>
@@ -133,9 +130,9 @@ namespace Rose::Framework
   }
 
   template<typename T>
-  std::shared_ptr<T> AssetManager::GetResource(_In_ const Internal::RESOURCE_HANDLE& Resource)
+  std::shared_ptr<T> AssetManager::GetResource(_In_ const Internal::RESOURCE_HANDLE& Handle)
   {
-    auto pResource = m_Pool.Get(Resource.Index);
+    auto pResource = m_Pool.Get(Handle);
 
     if (!pResource)
     {
