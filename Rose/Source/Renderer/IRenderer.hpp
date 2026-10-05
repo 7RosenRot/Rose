@@ -12,7 +12,7 @@ namespace Rose::Renderer {
   class IRenderer {
    public:
     IRenderer() = default;
-    ~IRenderer() = default;
+    virtual ~IRenderer() = default;
 
     virtual std::shared_ptr<Rose::Framework::Internal::IMesh> CreateMesh(
       std::vector<Rose::Framework::Internal::Vertex> Vertices, std::vector<std::uint32_t> Indices

@@ -7,33 +7,29 @@
 #include <queue>
 #include <filesystem>
 #include <cstdint>
-#include <cassert>
 
 #include "Renderer/IRenderer.hpp"
-
 #include "Resources/IResource.hpp"
-#include "Resources/IMesh.hpp"
-#include "Resources/ITexture.hpp"
-
 #include "Loaders/IResourceLoader.hpp"
-#include "Loaders/ObjLoader.hpp"
-#include "Loaders/PngLoader.hpp"
 
 class Pool
 {
+  using RESOURCE_HANDLE = Rose::Framework::Internal::RESOURCE_HANDLE;
+  using IResource = Rose::Framework::Internal::IResource;
+  using Type = Rose::Framework::Internal::Type;
+
  private:
   struct Slot
   {
-    Rose::Framework::Internal::RESOURCE_HANDLE Handle{};
-    std::shared_ptr<Rose::Framework::Internal::IResource> Ptr = nullptr;
+    RESOURCE_HANDLE Handle{};
+    std::shared_ptr<IResource> Ptr = nullptr;
   };
 
   std::vector<Slot> m_Slots;
   std::queue<std::uint32_t> m_FreeIndices;
 
  public:
-  Rose::Framework::Internal::RESOURCE_HANDLE 
-    Push(_In_ const std::shared_ptr<Rose::Framework::Internal::IResource>& pResource)
+  RESOURCE_HANDLE Push(_In_ const std::shared_ptr<IResource>& pResource)
   {
     std::uint32_t Index = 0;
 
@@ -49,7 +45,7 @@ class Pool
     {
       Index = static_cast<std::uint32_t>(m_Slots.size());
 
-      Rose::Framework::Internal::RESOURCE_HANDLE Handle
+      RESOURCE_HANDLE Handle
       {
         pResource->GetType(), 0, Index
       };
@@ -60,13 +56,13 @@ class Pool
     return m_Slots[Index].Handle;
   }
   
-  void Pop(_In_ const Rose::Framework::Internal::RESOURCE_HANDLE& Handle)
+  void Pop(_In_ const RESOURCE_HANDLE& Handle)
   {
     std::uint32_t Index = Handle.GetIndex();
 
     if (Index < m_Slots.size())
     {
-      m_Slots[Index].Handle.SetType(Rose::Framework::Internal::Type::Unknown);
+      m_Slots[Index].Handle.SetType(Type::Unknown);
       m_Slots[Index].Handle.UpStage();
       m_Slots[Index].Ptr.reset();
 
@@ -74,8 +70,7 @@ class Pool
     }
   }
   
-  std::shared_ptr<Rose::Framework::Internal::IResource>
-    Get(_In_ Rose::Framework::Internal::RESOURCE_HANDLE& Handle)
+  std::shared_ptr<IResource> Get(_In_ const RESOURCE_HANDLE& Handle) const
   {
     std::uint32_t Index = Handle.GetIndex();
 
@@ -88,6 +83,13 @@ class Pool
     }
   
     return nullptr;
+  }
+
+  void Reset()
+  {
+    m_Slots.clear();
+
+    m_FreeIndices = std::queue<std::uint32_t>();
   }
 };
 
@@ -141,7 +143,7 @@ namespace Rose::Framework
       return nullptr;
     }
 
-    return std::dynamic_pointer_cast<T>(pResource);
+    return std::static_pointer_cast<T>(pResource);
   }
 
 } //  Rose::Framework

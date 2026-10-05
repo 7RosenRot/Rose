@@ -8,7 +8,7 @@ file(
 )
 
 add_executable(
-  Rose WIN32 ${SOURCES}
+  Rose ${SOURCES}
 )
 
 target_compile_features(Rose PRIVATE cxx_std_17)

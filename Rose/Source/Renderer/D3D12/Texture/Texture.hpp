@@ -1,10 +1,11 @@
 #pragma once
 
-#include "Renderer/IRenderer.hpp"
+#include "Framework/AssetManager/Resources/ITexture.hpp"
 
-namespace Rose::Renderer::D3D12 {
+namespace Rose::Renderer::D3D12
+{
 
-  class Texture : public IRenderer
+  class Texture : public Rose::Framework::Internal::ITexture
   {
    public:
     Texture() = default;

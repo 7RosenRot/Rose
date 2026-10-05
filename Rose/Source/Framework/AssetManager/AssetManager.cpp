@@ -1,5 +1,8 @@
 #include "AssetManager.hpp"
 
+#include "Loaders/ObjLoader.hpp"
+#include "Loaders/PngLoader.hpp"
+
 namespace Rose::Framework {
 
   void AssetManager::Initialize(_In_ const std::shared_ptr<Renderer::IRenderer>& pRenderer)
@@ -11,12 +14,17 @@ namespace Rose::Framework {
   }
 
   void AssetManager::Shutdown()
-  {}
+  {
+    m_ResourceMap.clear();
+
+    m_Pool.Reset();
+
+    m_pLoaders.clear();
+  }
 
   Internal::RESOURCE_HANDLE AssetManager::UploadResource(_In_ const std::string& Path)
   {
     auto it = m_ResourceMap.find(Path);
-  
     if (it != m_ResourceMap.end())
     {
       return it->second;
