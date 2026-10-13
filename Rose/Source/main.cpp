@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 
   Rose::Framework::Internal::RESOURCE_HANDLE Handle{};
 
-  Handle = pAssetManager->UploadResource("C:/Microsoft Visual Studio/Visual Studio Code/Rose/MshkFrede.obj");
+  Handle = pAssetManager->UploadResource("D:/Microsoft Visual Studio/Visual Studio Code/Rose/MshkFrede.obj");
 
   if (Handle.GetType() != Rose::Framework::Internal::Type::Unknown)
   {
@@ -36,7 +36,7 @@ int main(int argc, char** argv)
     std::cout << "Failure";
   }
   
-  pAssetManager->DeleteResource("C:/Microsoft Visual Studio/Visual Studio Code/Rose/MshkFrede.obj");
+  pAssetManager->DeleteResource("D:/Microsoft Visual Studio/Visual Studio Code/Rose/MshkFrede.obj");
 
   pAssetManager->Shutdown();
 

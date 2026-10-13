@@ -68,70 +68,80 @@ namespace Rose::Framework::Internal
 
     while (std::getline(ObjFile, Token))
     {
-      std::istringstream TokenData(Token);
-      std::string TokenData_t;
+      char* TokenData = Token.data();
 
-      TokenData >> TokenData_t;
+      while (*TokenData == ' ') { ++TokenData; }
+      if (*TokenData == '\0' && *TokenData == '\r' && *TokenData == '\n') { break; }
       
-      if (TokenData_t == "v")
+      if (TokenData[0] == 'v' && TokenData[1] == ' ')
       {
         Rose::Core::Math::FLOAT3 Position;
-        TokenData >> Position.x >> Position.y >> Position.z;
+        Position.x = std::strtof(TokenData, &TokenData);
+        Position.y = std::strtof(TokenData, &TokenData);
+        Position.z = std::strtof(TokenData, &TokenData);
         Position.z *= -1.0f;
 
         PositionBuffer.push_back(Position);
       }
 
-      else if (TokenData_t == "vt")
+      else if (TokenData[0] == 'v' && TokenData[1] == 't' && TokenData[2] == ' ')
       {
         Rose::Core::Math::FLOAT2 Texture;
-        TokenData >> Texture.x >> Texture.y;
+        Texture.x = std::strtof(TokenData, &TokenData);
+        Texture.y = std::strtof(TokenData, &TokenData);
         Texture.y = 1.0f - Texture.y;
 
         TextureBuffer.push_back(Texture);
       }
 
-      else if (TokenData_t == "vn")
+      else if (TokenData[0] == 'v' && TokenData[1] == 'n' && TokenData[2] == ' ')
       {
         Rose::Core::Math::FLOAT3 Normal;
-        TokenData >> Normal.x >> Normal.y >> Normal.z;
+        Normal.x = std::strtof(TokenData, &TokenData);
+        Normal.y = std::strtof(TokenData, &TokenData);
+        Normal.z = std::strtof(TokenData, &TokenData);
         Normal.z *= -1.0f;
 
         NormalBuffer.push_back(Normal);
       }
 
-      else if (TokenData_t == "f")
+      else if (TokenData[0] == 'f' && TokenData[1] == ' ')
       {
         std::vector<std::uint32_t> FaceIndices;
         
-        // face: v/vt/vn v/vt/vn v/vt/vn
-        int vIdx = 0, vtIdx = 0, vnIdx = 0;
-        char slash;
-        
-        while (TokenData >> vIdx)
+        // f v/vt/vn v/vt/vn v/vt/vn
+        // f 14/95/107 2727/722/760 858/103/115
+
+        while (*TokenData != '\0' && *TokenData != '\r' && *TokenData != '\n')
         {
-          if (TokenData.peek() == '/')
+          int vIdx = 0, vtIdx = 0, vnIdx = 0;
+
+          while (*TokenData == ' ') { ++TokenData; }
+          if (*TokenData == '\0' && *TokenData == '\r' && *TokenData == '\n') { break; }
+
+          vIdx = static_cast<int>(std::strtol(TokenData, &TokenData, 10));
+          ++TokenData;
+
+          if (*TokenData == '/')
           {
-            TokenData >> slash;
-
-            if (TokenData.peek() == '/')
+            ++TokenData;
+            if (*TokenData == '/')
             {
-              TokenData >> slash;
-              TokenData >> vnIdx;
+              ++TokenData;
+              vnIdx = static_cast<int>(std::strtol(TokenData, &TokenData, 10));
             }
-
             else
             {
-              TokenData >> vtIdx;
-
-              if (TokenData.peek() == '/')
+              vtIdx = static_cast<int>(std::strtol(TokenData, &TokenData, 10));
+              
+              if (*TokenData == '/')
               {
-                TokenData >> slash;
-                TokenData >> vnIdx;
+                ++TokenData;
+                vnIdx = static_cast<int>(std::strtol(TokenData, &TokenData, 10));
               }
             }
-          }
 
+          }
           VKey Key{vIdx, vtIdx, vnIdx};
           std::uint32_t Index = 0;
 
@@ -188,3 +198,11 @@ namespace Rose::Framework::Internal
   }
 
 } //  namespace Rose::Framework::Internal
+
+//////////////////////////////////////////
+//              *EXAMPLE*               //
+// v -1.034430 17.354212 1.871622       //
+// vn 0.4809 0.0080 -0.8767             //
+// vt 0.419992 0.409470                 //
+// f 14/95/107 2727/722/760 858/103/115 //
+//////////////////////////////////////////
