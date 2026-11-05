@@ -3,7 +3,8 @@
 #include "Loaders/ObjLoader.hpp"
 #include "Loaders/PngLoader.hpp"
 
-namespace Rose::Framework {
+namespace Rose::Framework
+{
 
   void AssetManager::Initialize(_In_ const std::shared_ptr<Renderer::IRenderer>& pRenderer)
   {

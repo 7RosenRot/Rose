@@ -79,7 +79,7 @@ namespace Rose::Framework::Internal
       TYPE = Type;
     }
 
-    inline void SetIndex(_In_ std::uint32_t& Index) noexcept
+    inline void SetIndex(_In_ const std::uint32_t& Index) noexcept
     {
       if (Index > INDEX_MAX)
       {
@@ -91,7 +91,7 @@ namespace Rose::Framework::Internal
       ID = (ID & STAGE_MASK) | (Index & INDEX_MASK);
     }
 
-    inline void SetStage(_In_ std::uint32_t& Stage) noexcept
+    inline void SetStage(_In_ const std::uint32_t& Stage) noexcept
     {
       if (Stage > STAGE_MAX)
       {

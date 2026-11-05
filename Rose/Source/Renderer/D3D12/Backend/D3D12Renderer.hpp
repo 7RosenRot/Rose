@@ -18,7 +18,7 @@ namespace Rose::Renderer::D3D12
       std::vector<std::uint32_t> Indices
     ) override 
     {
-      return std::make_shared<Rose::Renderer::D3D12::Mesh>();
+      return std::make_shared<Rose::Renderer::D3D12::Mesh>(Vertices.size(), Indices.size());
     }
     
     virtual std::shared_ptr<Rose::Framework::Internal::ITexture> CreateTexture(

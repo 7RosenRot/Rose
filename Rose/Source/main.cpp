@@ -3,6 +3,7 @@
 #include "Framework/AssetManager/AssetManager.hpp"
 
 #include <iostream>
+#include <chrono>
 
 int WinMain()
 {
@@ -21,7 +22,9 @@ int main(int argc, char** argv)
 
   Rose::Framework::Internal::RESOURCE_HANDLE Handle{};
 
-  Handle = pAssetManager->UploadResource("D:/Microsoft Visual Studio/Visual Studio Code/Rose/MshkFrede.obj");
+  auto start = std::chrono::steady_clock::now();
+
+  Handle = pAssetManager->UploadResource("C:/Microsoft Visual Studio/Visual Studio Code/Rose/MshkFrede.obj");
 
   if (Handle.GetType() != Rose::Framework::Internal::Type::Unknown)
   {
@@ -35,8 +38,14 @@ int main(int argc, char** argv)
   {
     std::cout << "Failure";
   }
+
+  auto end = std::chrono::steady_clock::now();
+
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+  std::cout << '\n' << duration.count();
   
-  pAssetManager->DeleteResource("D:/Microsoft Visual Studio/Visual Studio Code/Rose/MshkFrede.obj");
+  pAssetManager->DeleteResource("C:/Microsoft Visual Studio/Visual Studio Code/Rose/MshkFrede.obj");
 
   pAssetManager->Shutdown();
 

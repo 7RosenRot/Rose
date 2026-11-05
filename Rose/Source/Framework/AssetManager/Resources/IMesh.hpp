@@ -15,6 +15,9 @@ namespace Rose::Framework::Internal
     {
       return Type::Mesh;
     }
+
+    virtual std::size_t GetVertexCount() const = 0;
+    virtual std::size_t GetIndexCount() const = 0;
   };
 
 } //  namespace Rose::Framework::Internal

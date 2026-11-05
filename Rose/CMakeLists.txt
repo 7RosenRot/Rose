@@ -1,10 +1,9 @@
 file(
   GLOB_RECURSE SOURCES
-  "Source/*.cpp"
-  "Source/*.hpp"
-  "Source/*.h"
-  "Source/*.rc"
-  "Source/main.cpp"
+  "*.cpp"
+  "*.hpp"
+  "*.h"
+  "*.rc"
 )
 
 add_executable(

@@ -23,4 +23,4 @@ namespace Rose::Renderer {
     ) = 0;
   };
 
-} // namespace Rose::Renderer
+} //  namespace Rose::Renderer

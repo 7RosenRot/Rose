@@ -1,4 +1,5 @@
 #include "ObjLoader.hpp"
+#include <filesystem>
 #include <unordered_map>
 
 struct VKey
@@ -41,7 +42,7 @@ namespace Rose::Framework::Internal
       return nullptr;
     }
 
-    std::shared_ptr<IMesh> pMesh = m_pRenderer->CreateMesh(Vertices, Indices);
+    std::shared_ptr<IMesh> pMesh = m_pRenderer->CreateMesh(std::move(Vertices), std::move(Indices));
 
     return pMesh;
   }
@@ -51,7 +52,7 @@ namespace Rose::Framework::Internal
     _Out_ std::vector<Vertex>& Vertices,
     _Out_ std::vector<std::uint32_t>& Indices
   ) {
-    std::ifstream ObjFile(Path);
+    std::ifstream ObjFile(Path, std::ios::binary);
 
     if (!ObjFile.is_open()) {
       // LOGGER expected
@@ -62,19 +63,47 @@ namespace Rose::Framework::Internal
     std::vector<Rose::Core::Math::FLOAT3> PositionBuffer;
     std::vector<Rose::Core::Math::FLOAT2> TextureBuffer;
     std::vector<Rose::Core::Math::FLOAT3> NormalBuffer;
-
-    std::string Token;
     std::unordered_map<VKey, std::uint32_t, VHasher> UniqueVertices;
 
-    while (std::getline(ObjFile, Token))
-    {
-      char* TokenData = Token.data();
+    std::size_t FileSize = std::filesystem::file_size(Path);
 
-      while (*TokenData == ' ') { ++TokenData; }
-      if (*TokenData == '\0' && *TokenData == '\r' && *TokenData == '\n') { break; }
+    std::size_t ReserveVtx = FileSize / 40;
+    std::size_t ReserveIdx  = FileSize / 15;
+
+    ReserveVtx = std::max<std::size_t>(ReserveVtx, 256);
+    ReserveIdx = std::max<std::size_t>(ReserveIdx, 512);
+
+    PositionBuffer.reserve(ReserveVtx);
+    TextureBuffer.reserve(ReserveVtx);
+    NormalBuffer.reserve(ReserveVtx);
+    UniqueVertices.reserve(ReserveVtx);
+
+    Vertices.reserve(ReserveVtx);
+    Indices.reserve(ReserveIdx);
+
+    std::string Token{ std::istreambuf_iterator<char>(ObjFile), std::istreambuf_iterator<char>() };
+    ObjFile.close();
+
+    char* TokenData = Token.data();
+
+    while (*TokenData != '\0') 
+    {
+      while (*TokenData == ' ' || *TokenData == '\t')
+      {
+        TokenData += 1;
+      }
       
+      if (*TokenData == '\r' || *TokenData == '\n')
+      {
+        TokenData += 1;
+    
+        continue;
+      }
+
       if (TokenData[0] == 'v' && TokenData[1] == ' ')
       {
+        TokenData += 2;
+
         Rose::Core::Math::FLOAT3 Position;
         Position.x = std::strtof(TokenData, &TokenData);
         Position.y = std::strtof(TokenData, &TokenData);
@@ -86,6 +115,8 @@ namespace Rose::Framework::Internal
 
       else if (TokenData[0] == 'v' && TokenData[1] == 't' && TokenData[2] == ' ')
       {
+        TokenData += 3;
+
         Rose::Core::Math::FLOAT2 Texture;
         Texture.x = std::strtof(TokenData, &TokenData);
         Texture.y = std::strtof(TokenData, &TokenData);
@@ -96,6 +127,8 @@ namespace Rose::Framework::Internal
 
       else if (TokenData[0] == 'v' && TokenData[1] == 'n' && TokenData[2] == ' ')
       {
+        TokenData += 3;
+
         Rose::Core::Math::FLOAT3 Normal;
         Normal.x = std::strtof(TokenData, &TokenData);
         Normal.y = std::strtof(TokenData, &TokenData);
@@ -107,41 +140,42 @@ namespace Rose::Framework::Internal
 
       else if (TokenData[0] == 'f' && TokenData[1] == ' ')
       {
+        TokenData += 2;
+
         std::vector<std::uint32_t> FaceIndices;
-        
-        // f v/vt/vn v/vt/vn v/vt/vn
-        // f 14/95/107 2727/722/760 858/103/115
 
         while (*TokenData != '\0' && *TokenData != '\r' && *TokenData != '\n')
         {
           int vIdx = 0, vtIdx = 0, vnIdx = 0;
 
           while (*TokenData == ' ') { ++TokenData; }
-          if (*TokenData == '\0' && *TokenData == '\r' && *TokenData == '\n') { break; }
+          if (*TokenData == '\0' || *TokenData == '\r' || *TokenData == '\n') { break; }
 
           vIdx = static_cast<int>(std::strtol(TokenData, &TokenData, 10));
-          ++TokenData;
 
           if (*TokenData == '/')
           {
-            ++TokenData;
+            TokenData  += 1;
+
             if (*TokenData == '/')
             {
-              ++TokenData;
+              TokenData += 1;
+
               vnIdx = static_cast<int>(std::strtol(TokenData, &TokenData, 10));
             }
             else
             {
               vtIdx = static_cast<int>(std::strtol(TokenData, &TokenData, 10));
-              
+
               if (*TokenData == '/')
               {
-                ++TokenData;
+                TokenData += 1;
+
                 vnIdx = static_cast<int>(std::strtol(TokenData, &TokenData, 10));
               }
             }
-
           }
+          
           VKey Key{vIdx, vtIdx, vnIdx};
           std::uint32_t Index = 0;
 
@@ -154,22 +188,22 @@ namespace Rose::Framework::Internal
           else
           {
             Vertex Vertex_{};
-    
+          
             if (vIdx > 0 && static_cast<size_t>(vIdx) <= PositionBuffer.size())
             {
               Vertex_.Position = PositionBuffer[vIdx - 1];
             }
-    
+          
             if (vtIdx > 0 && static_cast<size_t>(vtIdx) <= TextureBuffer.size())
             {
               Vertex_.Texture = TextureBuffer[vtIdx - 1];
             }
-  
+          
             if (vnIdx > 0 && static_cast<size_t>(vnIdx) <= NormalBuffer.size())
             {
               Vertex_.Normal = NormalBuffer[vnIdx - 1];
             }
-  
+          
             Index = static_cast<std::uint32_t>(Vertices.size());
 
             Vertices.push_back(Vertex_);
@@ -178,8 +212,6 @@ namespace Rose::Framework::Internal
           }
 
           FaceIndices.push_back(Index);
-
-          vIdx = 0; vtIdx = 0; vnIdx = 0;
         }
 
         if (FaceIndices.size() >= 3)
@@ -192,6 +224,10 @@ namespace Rose::Framework::Internal
           }
         }
       }
+
+      while (*TokenData != '\0' && *TokenData != '\n') { TokenData += 1; }
+
+      if (*TokenData == '\n') { TokenData += 1; }
     }
 
     return true;

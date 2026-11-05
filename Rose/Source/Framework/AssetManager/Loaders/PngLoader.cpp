@@ -6,6 +6,7 @@
 
 namespace Rose::Framework::Internal
 {
+
   std::shared_ptr<IResource> PngLoader::LoadResource(_In_ const std::string& Path)
   {
     if (Path.empty())
@@ -53,4 +54,5 @@ namespace Rose::Framework::Internal
 
     return Default;
   }
-}
+
+} //  namespace Rose::Framework::Internal
